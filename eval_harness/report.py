@@ -116,7 +116,7 @@ def _print_provenance_check(diff: dict) -> None:
     if not prov.get("known"):
         print("  unknown — at least one run has no provenance recorded")
     elif not changed:
-        print("  nothing — same model, dataset, scorers, and harness commit.")
+        print("  nothing — same model, same dataset, same scorers.")
         print("  Any difference in pass rate is run-to-run noise, not a real change.")
     else:
         b, n = diff.get("baseline_meta", {}), diff.get("new_meta", {})
