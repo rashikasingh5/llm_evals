@@ -1,11 +1,11 @@
 {
   "meta": {
     "schema_version": 1,
-    "timestamp": "2026-08-10T06:01:03+00:00",
+    "timestamp": "2026-08-10T06:26:07+00:00",
     "dataset_path": "examples/golden_set_offline.jsonl",
     "dataset_sha256": "84d0ee98e7c1",
     "n_examples": 4,
-    "scorers_sha256": "c598e3e07fa4",
+    "scorers_sha256": "8dfd8166f30d",
     "default_scorer": "exact_match",
     "pipeline_spec": "examples.mock_pipeline:answer",
     "pipeline": {
@@ -13,8 +13,8 @@
       "model": "canned-v1"
     },
     "model": "canned-v1",
-    "note": "rebaseline: by_tag now excludes ungraded examples",
-    "harness_git_sha": "11e6d2d",
+    "note": "rebaseline: stricter judge rubric",
+    "harness_git_sha": "c0c3178",
     "harness_git_dirty": true
   },
   "summary": {
@@ -23,7 +23,7 @@
     "passed": 4,
     "pass_rate": 1.0,
     "avg_score": 1.0,
-    "avg_latency_s": 7.748603820800781e-07,
+    "avg_latency_s": 9.5367431640625e-07,
     "error_count": 0,
     "grader_failure_count": 0,
     "grader_failure_ids": [],
@@ -84,7 +84,7 @@
       "passed": true,
       "score": 1.0,
       "reason": "",
-      "latency_s": 2.1457672119140625e-06,
+      "latency_s": 1.9073486328125e-06,
       "error": null,
       "grader_failed": false
     },
@@ -117,7 +117,7 @@
       "passed": true,
       "score": 1.0,
       "reason": "",
-      "latency_s": 0.0,
+      "latency_s": 9.5367431640625e-07,
       "error": null,
       "grader_failed": false
     }

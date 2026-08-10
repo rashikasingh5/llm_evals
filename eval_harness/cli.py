@@ -25,6 +25,7 @@ def load_dotenv(path: str = ".env") -> None:
         os.environ.setdefault(key, value)
 
 from . import provenance
+from .calibrate import load_labels, print_calibration, run_calibration
 from .dataset import load_dataset
 from .report import diff_runs, load_run, print_diff, print_meta, print_summary, save_run, summarize
 from .runner import results_to_dicts, run_eval
@@ -89,6 +90,21 @@ def cmd_run(args):
     print(f"\nSaved to {args.output}")
 
 
+def cmd_calibrate(args):
+    """Measure how often the LLM judge reaches the same verdict as you."""
+    examples = load_dataset(args.dataset)
+    match = [e for e in examples if e.id == args.example_id]
+    if not match:
+        print(f"No example with id '{args.example_id}' in {args.dataset}")
+        sys.exit(1)
+    example = match[0]
+
+    registry = build_scorer_registry(use_llm_judge=True)
+    labels = load_labels(args.labels)
+    report = run_calibration(labels, registry["llm_judge"], example.input, example.expected)
+    print_calibration(report)
+
+
 def cmd_compare(args):
     diff = diff_runs(args.baseline, args.new)
     print_diff(diff)
@@ -124,6 +140,12 @@ def main():
         help="exit 1 unless at most one variable (model/dataset/scorers/harness) changed between the runs",
     )
     p_cmp.set_defaults(func=cmd_compare)
+
+    p_cal = sub.add_parser("calibrate", help="Check whether the LLM judge agrees with your own grading")
+    p_cal.add_argument("--labels", default="examples/judge_calibration.jsonl")
+    p_cal.add_argument("--dataset", default="examples/golden_set.jsonl")
+    p_cal.add_argument("--example-id", default="summary_quality", help="which example's input/expected to judge against")
+    p_cal.set_defaults(func=cmd_calibrate)
 
     args = parser.parse_args()
     args.func(args)

@@ -83,9 +83,17 @@ System's output:
 Expected / reference answer (may be partial or a rubric, not a strict match):
 {expected}
 
-Grade the output from 0-10 on correctness and quality relative to the expected
-answer. Be strict — do not give partial credit for confident-sounding but
-wrong answers. Respond with ONLY a JSON object, no other text:
+Grade the output from 0-10. Judge it on all of the following:
+
+- Correctness: does it match the expected answer, with no invented or altered
+  details?
+- Instruction-following: does it obey the constraints in the input, including
+  length, format, and the language the input was written in?
+- Conciseness: is it as short as the task asked for, with no padding?
+
+Be strict. Do not give partial credit for confident-sounding but wrong answers,
+and do not pass an output that is accurate but ignores what was asked for.
+Respond with ONLY a JSON object, no other text:
 {{"score": <0-10 integer>, "reason": "<one sentence>"}}
 """
 

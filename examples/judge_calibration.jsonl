@@ -1,0 +1,20 @@
+{"id": "01_clean", "output": "A brown fox leaps over a lazy dog as the sun sets behind the hills, painting the sky orange and purple.", "human_label": null, "note": "accurate, one sentence, everything present"}
+{"id": "02_two_sentences", "output": "A brown fox leaps over a lazy dog. Behind the hills, the setting sun paints the sky orange and purple.", "human_label": null, "note": "accurate but you asked for ONE sentence"}
+{"id": "03_verbose", "output": "In this evocative scene, a quick and agile brown fox performs a graceful leap over a dog that is resting lazily on the ground, all while the sun descends slowly behind a range of rolling hills, casting brilliant hues of orange and purple across the expanse of the evening sky.", "human_label": null, "note": "accurate, one sentence, but bloated"}
+{"id": "04_missing_sunset", "output": "A quick brown fox jumps over a lazy dog.", "human_label": null, "note": "half the content is gone"}
+{"id": "05_missing_fox", "output": "The sun sets behind the hills, painting the sky orange and purple.", "human_label": null, "note": "the other half is gone"}
+{"id": "06_hallucinated", "output": "A brown fox leaps over a lazy dog while a farmer watches the sun set behind the hills in orange and purple.", "human_label": null, "note": "invents a farmer"}
+{"id": "07_wrong_animal", "output": "A quick brown cat leaps over a lazy dog as the sunset paints the sky orange and purple.", "human_label": null, "note": "cat, not fox"}
+{"id": "08_verbatim", "output": "The quick brown fox jumps over the lazy dog while the sun sets behind the hills, painting the sky orange and purple.", "human_label": null, "note": "copies the input, summarises nothing"}
+{"id": "09_refusal", "output": "I'm not able to summarize that text.", "human_label": null, "note": "flat refusal of an ordinary request"}
+{"id": "10_poetic", "output": "Against a dusk of orange and violet, a fox vaults an idle hound.", "human_label": null, "note": "accurate, different register"}
+{"id": "11_preamble", "output": "Sure! Here's a one-sentence summary:\n\nA brown fox leaps over a lazy dog beneath an orange and purple sunset.", "human_label": null, "note": "correct answer wrapped in chat filler"}
+{"id": "12_bullets", "output": "- A fox jumps over a dog\n- The sun sets behind hills\n- The sky turns orange and purple", "human_label": null, "note": "content is right, format is not a sentence"}
+{"id": "13_terse", "output": "A fox and a sunset.", "human_label": null, "note": "technically a summary, almost no information"}
+{"id": "14_wrong_colour", "output": "A brown fox leaps over a lazy dog as the sun sets behind the hills, painting the sky green and grey.", "human_label": null, "note": "one factual detail changed"}
+{"id": "15_reversed", "output": "A lazy dog leaps over a quick brown fox as the sunset paints the sky orange and purple.", "human_label": null, "note": "subject and object swapped"}
+{"id": "16_other_language", "output": "Un renard brun saute par-dessus un chien paresseux tandis que le coucher de soleil peint le ciel en orange et violet.", "human_label": null, "note": "accurate, wrong language"}
+{"id": "17_markdown", "output": "A **brown fox** leaps over a **lazy dog** while the sunset paints the sky *orange and purple*.", "human_label": null, "note": "correct, with markdown decoration"}
+{"id": "18_opinion", "output": "A brown fox leaps over a lazy dog under a beautiful orange and purple sunset, which is a lovely image.", "human_label": null, "note": "accurate plus an unrequested opinion"}
+{"id": "19_runon", "output": "A brown fox, quick and light on its feet, leaps over a lazy dog, and meanwhile the sun is going down behind the hills, and the sky is turning orange, and also purple, in a way that is quite striking to see at this hour of the evening.", "human_label": null, "note": "one sentence, but a run-on"}
+{"id": "20_extra_question", "output": "A brown fox leaps over a lazy dog beneath an orange and purple sunset. Would you like me to make it shorter?", "human_label": null, "note": "correct summary plus a trailing question"}
