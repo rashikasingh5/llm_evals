@@ -1,5 +1,7 @@
 # eval-harness
 
+[![eval](https://github.com/rashika510/llm_evals/actions/workflows/eval.yml/badge.svg)](https://github.com/rashika510/llm_evals/actions/workflows/eval.yml)
+
 A small harness for testing LLM pipelines. You give it a file of questions with
 expected answers, a function that calls your AI, and it tells you how many came
 back right.
