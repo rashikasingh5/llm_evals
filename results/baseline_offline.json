@@ -1,0 +1,118 @@
+{
+  "meta": {
+    "schema_version": 1,
+    "timestamp": "2026-08-10T05:33:01+00:00",
+    "dataset_path": "examples/golden_set_offline.jsonl",
+    "dataset_sha256": "84d0ee98e7c1",
+    "n_examples": 4,
+    "scorers_sha256": "500780c89a43",
+    "default_scorer": "exact_match",
+    "pipeline_spec": "examples.mock_pipeline:answer",
+    "pipeline": {
+      "provider": "mock",
+      "model": "canned-v1"
+    },
+    "model": "canned-v1",
+    "note": "initial CI baseline",
+    "harness_git_sha": "dfc4285",
+    "harness_git_dirty": false
+  },
+  "summary": {
+    "total": 4,
+    "passed": 4,
+    "pass_rate": 1.0,
+    "avg_score": 1.0,
+    "avg_latency_s": 7.748603820800781e-07,
+    "error_count": 0,
+    "by_tag": {
+      "geography": {
+        "total": 2,
+        "passed": 2,
+        "pass_rate": 1.0
+      },
+      "easy": {
+        "total": 1,
+        "passed": 1,
+        "pass_rate": 1.0
+      },
+      "hard": {
+        "total": 1,
+        "passed": 1,
+        "pass_rate": 1.0
+      },
+      "math": {
+        "total": 1,
+        "passed": 1,
+        "pass_rate": 1.0
+      },
+      "extraction": {
+        "total": 1,
+        "passed": 1,
+        "pass_rate": 1.0
+      }
+    }
+  },
+  "results": [
+    {
+      "id": "capital_france",
+      "input": "What is the capital of France?",
+      "output": "The capital of France is **Paris**.",
+      "expected": "Paris",
+      "tags": [
+        "geography",
+        "easy"
+      ],
+      "passed": true,
+      "score": 1.0,
+      "reason": "",
+      "latency_s": 9.5367431640625e-07,
+      "error": null
+    },
+    {
+      "id": "capital_australia",
+      "input": "What is the capital of Australia?",
+      "output": "The capital of Australia is **Canberra**.",
+      "expected": "Canberra",
+      "tags": [
+        "geography",
+        "hard"
+      ],
+      "passed": true,
+      "score": 1.0,
+      "reason": "",
+      "latency_s": 9.5367431640625e-07,
+      "error": null
+    },
+    {
+      "id": "math_simple",
+      "input": "What is 17 * 24?",
+      "output": "17 \u00d7 24 = 408.",
+      "expected": "408",
+      "tags": [
+        "math"
+      ],
+      "passed": true,
+      "score": 1.0,
+      "reason": "diff=0.0",
+      "latency_s": 0.0,
+      "error": null
+    },
+    {
+      "id": "extract_json",
+      "input": "Extract as JSON with keys name, age from: 'Rashika is 29 years old'",
+      "output": "```json\n{\n  \"name\": \"Rashika\",\n  \"age\": 29\n}\n```",
+      "expected": {
+        "name": "",
+        "age": ""
+      },
+      "tags": [
+        "extraction"
+      ],
+      "passed": true,
+      "score": 1.0,
+      "reason": "",
+      "latency_s": 1.1920928955078125e-06,
+      "error": null
+    }
+  ]
+}
