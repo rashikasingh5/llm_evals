@@ -1,0 +1,119 @@
+{
+  "summary": {
+    "total": 5,
+    "passed": 5,
+    "pass_rate": 1.0,
+    "avg_score": 0.9800000000000001,
+    "avg_latency_s": 0.32824482917785647,
+    "error_count": 0,
+    "by_tag": {
+      "geography": {
+        "total": 2,
+        "passed": 2,
+        "pass_rate": 1.0
+      },
+      "easy": {
+        "total": 1,
+        "passed": 1,
+        "pass_rate": 1.0
+      },
+      "hard": {
+        "total": 1,
+        "passed": 1,
+        "pass_rate": 1.0
+      },
+      "math": {
+        "total": 1,
+        "passed": 1,
+        "pass_rate": 1.0
+      },
+      "extraction": {
+        "total": 1,
+        "passed": 1,
+        "pass_rate": 1.0
+      },
+      "open_ended": {
+        "total": 1,
+        "passed": 1,
+        "pass_rate": 1.0
+      }
+    }
+  },
+  "results": [
+    {
+      "id": "capital_france",
+      "input": "What is the capital of France?",
+      "output": "The capital of France is **Paris**.",
+      "expected": "Paris",
+      "tags": [
+        "geography",
+        "easy"
+      ],
+      "passed": true,
+      "score": 1.0,
+      "reason": "",
+      "latency_s": 0.30794382095336914,
+      "error": null
+    },
+    {
+      "id": "capital_australia",
+      "input": "What is the capital of Australia?",
+      "output": "The capital of Australia is **Canberra**.",
+      "expected": "Canberra",
+      "tags": [
+        "geography",
+        "hard"
+      ],
+      "passed": true,
+      "score": 1.0,
+      "reason": "",
+      "latency_s": 0.23982620239257812,
+      "error": null
+    },
+    {
+      "id": "math_simple",
+      "input": "What is 17 * 24?",
+      "output": "17\u202f\u00d7\u202f24\u202f=\u202f408.",
+      "expected": "408",
+      "tags": [
+        "math"
+      ],
+      "passed": true,
+      "score": 1.0,
+      "reason": "diff=0.0",
+      "latency_s": 0.41135382652282715,
+      "error": null
+    },
+    {
+      "id": "extract_json",
+      "input": "Extract as JSON with keys name, age from: 'Rashika is 29 years old'",
+      "output": "```json\n{\n  \"name\": \"Rashika\",\n  \"age\": 29\n}\n```",
+      "expected": {
+        "name": "",
+        "age": ""
+      },
+      "tags": [
+        "extraction"
+      ],
+      "passed": true,
+      "score": 1.0,
+      "reason": "",
+      "latency_s": 0.40914297103881836,
+      "error": null
+    },
+    {
+      "id": "summary_quality",
+      "input": "Summarize in one sentence: The quick brown fox jumps over the lazy dog while the sun sets behind the hills, painting the sky orange and purple.",
+      "output": "A swift brown fox leaps over a lazy dog as the sunset paints the hillsides orange and purple.",
+      "expected": "A brief, accurate one-sentence summary capturing the fox jumping over the dog and the sunset imagery.",
+      "tags": [
+        "open_ended"
+      ],
+      "passed": true,
+      "score": 0.9,
+      "reason": "Accurately summarizes the fox jumping over the dog and sunset colors, with only a minor wording shift from sky to hillsides.",
+      "latency_s": 0.27295732498168945,
+      "error": null
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+{"id": "capital_france", "input": "What is the capital of France?", "expected": "Paris", "tags": ["geography", "easy"], "scorer": "contains"}
+{"id": "capital_australia", "input": "What is the capital of Australia?", "expected": "Canberra", "tags": ["geography", "hard"], "scorer": "contains"}
+{"id": "math_simple", "input": "What is 17 * 24?", "expected": "408", "tags": ["math"], "scorer": "numeric_tolerance"}
+{"id": "extract_json", "input": "Extract as JSON with keys name, age from: 'Rashika is 29 years old'", "expected": {"name": "", "age": ""}, "tags": ["extraction"], "scorer": "json_schema_valid"}
+{"id": "summary_quality", "input": "Summarize in one sentence: The quick brown fox jumps over the lazy dog while the sun sets behind the hills, painting the sky orange and purple.", "expected": "A brief, accurate one-sentence summary capturing the fox jumping over the dog and the sunset imagery.", "tags": ["open_ended"], "scorer": "llm_judge"}

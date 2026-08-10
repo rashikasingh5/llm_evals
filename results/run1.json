@@ -1,0 +1,119 @@
+{
+  "summary": {
+    "total": 5,
+    "passed": 3,
+    "pass_rate": 0.6,
+    "avg_score": 0.6,
+    "avg_latency_s": 0.3952054977416992,
+    "error_count": 0,
+    "by_tag": {
+      "geography": {
+        "total": 2,
+        "passed": 2,
+        "pass_rate": 1.0
+      },
+      "easy": {
+        "total": 1,
+        "passed": 1,
+        "pass_rate": 1.0
+      },
+      "hard": {
+        "total": 1,
+        "passed": 1,
+        "pass_rate": 1.0
+      },
+      "math": {
+        "total": 1,
+        "passed": 0,
+        "pass_rate": 0.0
+      },
+      "extraction": {
+        "total": 1,
+        "passed": 0,
+        "pass_rate": 0.0
+      },
+      "open_ended": {
+        "total": 1,
+        "passed": 1,
+        "pass_rate": 1.0
+      }
+    }
+  },
+  "results": [
+    {
+      "id": "capital_france",
+      "input": "What is the capital of France?",
+      "output": "The capital of France is **Paris**.",
+      "expected": "Paris",
+      "tags": [
+        "geography",
+        "easy"
+      ],
+      "passed": true,
+      "score": 1.0,
+      "reason": "",
+      "latency_s": 0.6697142124176025,
+      "error": null
+    },
+    {
+      "id": "capital_australia",
+      "input": "What is the capital of Australia?",
+      "output": "The capital of Australia is **Canberra**. It\u2019s located in the Australian Capital Territory (ACT) and serves as the seat of the federal government.",
+      "expected": "Canberra",
+      "tags": [
+        "geography",
+        "hard"
+      ],
+      "passed": true,
+      "score": 1.0,
+      "reason": "",
+      "latency_s": 0.30522894859313965,
+      "error": null
+    },
+    {
+      "id": "math_simple",
+      "input": "What is 17 * 24?",
+      "output": "17\u202f\u00d7\u202f24\u202f=\u202f408.",
+      "expected": "408",
+      "tags": [
+        "math"
+      ],
+      "passed": false,
+      "score": 0.0,
+      "reason": "diff=1724000.0",
+      "latency_s": 0.4083731174468994,
+      "error": null
+    },
+    {
+      "id": "extract_json",
+      "input": "Extract as JSON with keys name, age from: 'Rashika is 29 years old'",
+      "output": "```json\n{\n  \"name\": \"Rashika\",\n  \"age\": 29\n}\n```",
+      "expected": {
+        "name": "",
+        "age": ""
+      },
+      "tags": [
+        "extraction"
+      ],
+      "passed": false,
+      "score": 0.0,
+      "reason": "invalid JSON: Expecting value: line 1 column 1 (char 0)",
+      "latency_s": 0.30680394172668457,
+      "error": null
+    },
+    {
+      "id": "summary_quality",
+      "input": "Summarize in one sentence: The quick brown fox jumps over the lazy dog while the sun sets behind the hills, painting the sky orange and purple.",
+      "output": "A swift brown fox leaps over a lazy dog as the setting sun paints the hills\u2011backed sky in orange and purple.",
+      "expected": "A brief, accurate one-sentence summary capturing the fox jumping over the dog and the sunset imagery.",
+      "tags": [
+        "open_ended"
+      ],
+      "passed": true,
+      "score": 1.0,
+      "reason": "Accurately captures the fox jumping over the dog and the sunset imagery in a concise single sentence.",
+      "latency_s": 0.2859072685241699,
+      "error": null
+    }
+  ]
+}
