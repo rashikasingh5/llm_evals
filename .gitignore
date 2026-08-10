@@ -1,2 +1,21 @@
-/.DS_Store
-/.env
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# OS
+.DS_Store
+
+# Eval runs are build output, not source. Commit only the ones you're
+# deliberately keeping as a baseline (use `git add -f results/baseline.json`).
+results/*.json
+!results/run1.json
+!results/run2.json
+!results/baseline_offline.json

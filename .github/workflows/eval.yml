@@ -1,0 +1,45 @@
+name: eval
+
+# Runs on every push and PR. Uses the mock pipeline (canned answers), so it
+# needs no API key, costs nothing, and is fully deterministic — which means a
+# failure here is always a real change in the harness, never model randomness.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  offline-eval:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run the eval against a deterministic pipeline
+        run: |
+          python -m eval_harness.cli run \
+            --dataset examples/golden_set_offline.jsonl \
+            --pipeline examples.mock_pipeline:answer \
+            --output results/ci.json \
+            --note "CI ${{ github.sha }}"
+
+      - name: Compare against the committed baseline
+        # --require-controlled fails the build if more than one variable moved,
+        # so a green check actually means something. --fail-on-regression fails
+        # it if any example that used to pass now doesn't.
+        run: |
+          python -m eval_harness.cli compare \
+            results/baseline_offline.json \
+            results/ci.json \
+            --require-controlled \
+            --fail-on-regression
+
+      - name: Upload the run for inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-run
+          path: results/ci.json

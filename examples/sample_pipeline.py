@@ -11,11 +11,18 @@ is set — no Anthropic key required.
 
 from .llm_clients import groq_call
 
+MODEL = "openai/gpt-oss-120b"
+
 _call = None
 
 
 def answer(input_text: str) -> str:
     global _call
     if _call is None:
-        _call = groq_call(model="openai/gpt-oss-120b")
+        _call = groq_call(model=MODEL)
     return _call(str(input_text))
+
+
+# Declaring this is what lets a saved run record which model produced it.
+# Without it the run still works — it just can't tell you what it tested.
+answer.eval_meta = {"provider": "groq", "model": MODEL}
