@@ -82,8 +82,11 @@ Pass to fail is a regression, fail to pass is a fix.
 `provenance.py` records what produced a run and checks whether two runs can
 fairly be compared. See below.
 
-`cli.py` gives you `run` and `compare`. Most of it is argument parsing; the real
-work is in two functions of about fifteen lines each.
+`calibrate.py` measures whether the LLM judge reaches the same verdicts you do,
+using outputs you've graded by hand. See below.
+
+`cli.py` gives you `run`, `compare` and `calibrate`. Most of it is argument
+parsing; the real work is in three short functions.
 
 To eval your own system, the only thing you write is a function shaped like
 `(input) -> output_str`. Point `--pipeline` at it as `module.path:function_name`.
@@ -167,6 +170,75 @@ thinking before they write the verdict.
 Finally, `diff_runs` counts a grader breakage as its own category rather than a
 regression, so CI doesn't send you off debugging a prompt when the fault is in
 the harness.
+
+## Checking the judge against a human
+
+`llm_judge` produces a number whether or not it is any good, so the numbers on
+their own are not evidence. The only way to find out is to grade some outputs
+yourself and see how often the judge reaches the same verdict.
+
+```bash
+python -m eval_harness.cli calibrate
+```
+
+`examples/judge_calibration.jsonl` holds 20 outputs for the summary question,
+spread across the ways a summary can go wrong: missing content, invented
+details, subject and object reversed, wrong colour, wrong language, bullet list
+instead of a sentence, verbatim copy of the input, a flat refusal, chat filler,
+padding. Each carries a `human_label` you set to `true` or `false`.
+
+The command reports agreement, Cohen's kappa, and the two kinds of disagreement
+separately. False passes are the dangerous ones: bad outputs your eval waves
+through. False fails cost you improvements you'd otherwise keep.
+
+Kappa is there because raw agreement lies when the labels are lopsided. If 18 of
+20 outputs are good, a judge that says "pass" to everything scores 90% agreement
+while knowing nothing at all. Kappa corrects for luck and scores that judge 0.
+
+### What this found
+
+The first run scored 90% agreement, kappa 0.76. Both disagreements were the
+judge passing outputs a human failed, and in both cases the judge had already
+identified the problem in its own reason:
+
+```
+16_other_language  8/10  "...accurately captures the fox and sunset, but is in French"
+19_runon           8/10  "...correctly includes the fox and the sunset, but is overly wordy"
+```
+
+The judge saw it and passed anyway, because the rubric only asked about
+"correctness and quality relative to the expected answer". A French translation
+is correct. A rambling run-on is correct. So the rubric now grades correctness,
+instruction-following (length, format and the language of the input) and
+conciseness as separate requirements.
+
+### Two things that keep these numbers honest
+
+**A rubric tuned against a set can't be measured on that set.** The rubric above
+was written while looking at those 20 examples, so its score on them is
+optimistic by construction. `examples/judge_calibration_holdout.jsonl` holds ten
+different outputs written afterwards and never used for tuning. That's the set
+whose number means something.
+
+**The judge is not deterministic, so neither is its agreement score.** Four runs
+of the same holdout set, same labels, same rubric:
+
+```
+100%  (kappa 1.00)
+ 90%  (kappa 0.80)
+ 90%  (kappa 0.80)
+ 90%  (kappa 0.80)
+```
+
+Report the range, not the best run. And ten examples is a small sample: this
+result can't tell a genuinely 90% judge apart from a 75% one. Treat it as
+"roughly agrees with me, worth watching" rather than a precise figure.
+
+The labels currently in both files are a starting point, not the truth. Some
+cases are genuinely arguable — whether a correct summary wrapped in "Sure!
+Here's a summary:" should pass, whether an accurate answer that adds an
+unrequested opinion should pass. Whatever you decide is the standard, and the
+rubric should be adjusted to match you rather than the other way round.
 
 ## CI
 

@@ -1,0 +1,10 @@
+{"id": "h01_clean_reworded", "output": "A fox jumps over a dozing dog as the sky glows orange and purple at sunset.", "human_label": true, "note": "accurate, brief, one sentence"}
+{"id": "h02_meta", "output": "The passage describes a fox, a dog, and a sunset.", "human_label": false, "note": "lists the nouns, drops the action"}
+{"id": "h03_padded", "output": "A fox jumped over a dog at sunset, and the hills were painted orange and purple by the sun which was setting behind them at the time.", "human_label": false, "note": "one sentence but padded"}
+{"id": "h04_wrong_colour", "output": "A fox leaps over a sleeping dog beneath a pink and yellow sky.", "human_label": false, "note": "colours changed"}
+{"id": "h05_telegraphic", "output": "Fox jumps dog. Sun sets.", "human_label": false, "note": "two fragments, most detail gone"}
+{"id": "h06_inverted_clause", "output": "As the sun dips behind the hills in a wash of orange and purple, a brown fox springs over a lazy dog.", "human_label": true, "note": "accurate, one sentence, clause order swapped"}
+{"id": "h07_trivia", "output": "A brown fox leaps over a lazy dog while the sun sets behind the hills, painting the sky orange and purple. This is a classic pangram used for testing fonts.", "human_label": false, "note": "correct summary plus unrequested trivia"}
+{"id": "h08_labelled", "output": "Summary: A fox leaps over a lazy dog under an orange-and-purple sunset.", "human_label": true, "note": "correct, with a 'Summary:' prefix"}
+{"id": "h09_reframed", "output": "A dog lazily watches as a fox leaps over it, with the sun setting in orange and purple behind the hills.", "human_label": true, "note": "accurate, told from the dog's side"}
+{"id": "h10_spanish_partial", "output": "El zorro salta sobre el perro mientras el sol se pone.", "human_label": false, "note": "Spanish, and drops the colours"}
