@@ -18,7 +18,7 @@ def summarize(results: list[dict]) -> dict:
     errors = [r for r in results if r["error"]]
 
     by_tag: dict[str, dict] = {}
-    for r in results:
+    for r in gradable:  # same rule as the headline rate: ungraded is not failed
         for tag in r["tags"] or ["untagged"]:
             bucket = by_tag.setdefault(tag, {"total": 0, "passed": 0})
             bucket["total"] += 1
@@ -118,15 +118,16 @@ def print_summary(summary: dict, title: str = "Run summary") -> None:
     print(f"Avg latency:  {summary['avg_latency_s']:.2f}s")
     if summary["error_count"]:
         print(f"Errors:       {summary['error_count']}")
-    if summary.get("grader_failure_count"):
-        n = summary["grader_failure_count"]
-        print(f"\n!! {n} example(s) could not be graded: {', '.join(summary['grader_failure_ids'])}")
-        print(f"   These are excluded from the pass rate above, which is now over {gradable}")
-        print(f"   of {summary['total']} examples. Fix the grader before trusting this number.")
     if summary["by_tag"]:
         print("By tag:")
         for tag, v in summary["by_tag"].items():
             print(f"  {tag:20s} {v['passed']}/{v['total']} ({v['pass_rate']:.1%})")
+    # Last, so it's the thing left on screen.
+    if summary.get("grader_failure_count"):
+        n = summary["grader_failure_count"]
+        print(f"\n!! {n} example(s) could not be graded: {', '.join(summary['grader_failure_ids'])}")
+        print(f"   These are excluded from the numbers above, which cover {gradable}")
+        print(f"   of {summary['total']} examples. Fix the grader before trusting them.")
 
 
 def _print_provenance_check(diff: dict) -> None:
