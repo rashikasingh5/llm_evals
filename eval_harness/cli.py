@@ -56,7 +56,13 @@ def build_scorer_registry(use_llm_judge: bool) -> dict:
         except ImportError:
             print("openai package not installed — run: pip install openai --break-system-packages")
             sys.exit(1)
-        registry["llm_judge"] = make_llm_judge(groq_call(model="openai/gpt-oss-120b"))
+        # Judges need far more headroom than the 300-token default: reasoning
+        # models spend tokens thinking before they emit the JSON verdict, and a
+        # reply cut off mid-JSON is unreadable. That looked like the graded
+        # answer failing, which it wasn't.
+        registry["llm_judge"] = make_llm_judge(
+            groq_call(model="openai/gpt-oss-120b", max_tokens=2000)
+        )
     return registry
 
 

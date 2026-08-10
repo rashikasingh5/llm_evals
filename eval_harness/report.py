@@ -7,8 +7,13 @@ from .provenance import describe_changes
 
 def summarize(results: list[dict]) -> dict:
     total = len(results)
-    passed = sum(1 for r in results if r["passed"])
-    avg_score = sum(r["score"] for r in results) / total if total else 0.0
+    # An example whose grader broke was never graded. Counting it as a failure
+    # would blame the system for a fault in the harness, so it comes out of the
+    # denominator and is reported separately instead.
+    grader_failures = [r for r in results if r.get("grader_failed")]
+    gradable = [r for r in results if not r.get("grader_failed")]
+    passed = sum(1 for r in gradable if r["passed"])
+    avg_score = sum(r["score"] for r in gradable) / len(gradable) if gradable else 0.0
     avg_latency = sum(r["latency_s"] for r in results) / total if total else 0.0
     errors = [r for r in results if r["error"]]
 
@@ -21,11 +26,14 @@ def summarize(results: list[dict]) -> dict:
 
     return {
         "total": total,
+        "gradable": len(gradable),
         "passed": passed,
-        "pass_rate": passed / total if total else 0.0,
+        "pass_rate": passed / len(gradable) if gradable else 0.0,
         "avg_score": avg_score,
         "avg_latency_s": avg_latency,
         "error_count": len(errors),
+        "grader_failure_count": len(grader_failures),
+        "grader_failure_ids": [r["id"] for r in grader_failures],
         "by_tag": {
             tag: {"total": v["total"], "passed": v["passed"], "pass_rate": v["passed"] / v["total"]}
             for tag, v in by_tag.items()
@@ -52,12 +60,18 @@ def diff_runs(baseline_path: str | Path, new_path: str | Path) -> dict:
     # Before comparing numbers, work out whether the comparison is even valid.
     provenance = describe_changes(baseline_run.get("meta"), new_run.get("meta"))
 
-    regressions, fixes, common_ids = [], [], set(baseline) & set(new)
+    regressions, fixes, grader_breakages = [], [], []
+    common_ids = set(baseline) & set(new)
     for eid in common_ids:
         b, n = baseline[eid], new[eid]
-        if b["passed"] and not n["passed"]:
+        if n.get("grader_failed"):
+            # Not a regression: the grader broke, so we don't know how the
+            # system did. Calling this a regression would send you off
+            # debugging a prompt when the fault is in the harness.
+            grader_breakages.append({"id": eid, "reason": n.get("reason", "")})
+        elif b["passed"] and not n["passed"]:
             regressions.append({"id": eid, "input": n["input"], "was": b["output"], "now": n["output"]})
-        elif not b["passed"] and n["passed"]:
+        elif not b["passed"] and n["passed"] and not b.get("grader_failed"):
             fixes.append({"id": eid})
 
     only_baseline = set(baseline) - set(new)
@@ -75,6 +89,7 @@ def diff_runs(baseline_path: str | Path, new_path: str | Path) -> dict:
         "pass_rate_delta": n_summary["pass_rate"] - b_summary["pass_rate"],
         "regressions": regressions,
         "fixes": fixes,
+        "grader_breakages": grader_breakages,
         "examples_only_in_baseline": sorted(only_baseline),
         "examples_only_in_new": sorted(only_new),
     }
@@ -97,11 +112,17 @@ def print_meta(meta: dict, title: str = "Run provenance") -> None:
 
 def print_summary(summary: dict, title: str = "Run summary") -> None:
     print(f"\n=== {title} ===")
-    print(f"Pass rate:    {summary['passed']}/{summary['total']} ({summary['pass_rate']:.1%})")
+    gradable = summary.get("gradable", summary["total"])
+    print(f"Pass rate:    {summary['passed']}/{gradable} ({summary['pass_rate']:.1%})")
     print(f"Avg score:    {summary['avg_score']:.2f}")
     print(f"Avg latency:  {summary['avg_latency_s']:.2f}s")
     if summary["error_count"]:
         print(f"Errors:       {summary['error_count']}")
+    if summary.get("grader_failure_count"):
+        n = summary["grader_failure_count"]
+        print(f"\n!! {n} example(s) could not be graded: {', '.join(summary['grader_failure_ids'])}")
+        print(f"   These are excluded from the pass rate above, which is now over {gradable}")
+        print(f"   of {summary['total']} examples. Fix the grader before trusting this number.")
     if summary["by_tag"]:
         print("By tag:")
         for tag, v in summary["by_tag"].items():
@@ -149,5 +170,10 @@ def print_diff(diff: dict) -> None:
             print(f"      now: {str(r['now'])[:120]}")
     if diff["fixes"]:
         print(f"\n✅ {len(diff['fixes'])} example(s) newly fixed")
-    if not diff["regressions"] and not diff["fixes"]:
+    if diff.get("grader_breakages"):
+        print(f"\n!! {len(diff['grader_breakages'])} example(s) could not be graded in the new run.")
+        print("   Not counted as regressions — the grader failed, so the system was never judged.")
+        for g in diff["grader_breakages"]:
+            print(f"  - {g['id']}: {g['reason'][:100]}")
+    if not diff["regressions"] and not diff["fixes"] and not diff.get("grader_breakages"):
         print("No change in per-example pass/fail.")

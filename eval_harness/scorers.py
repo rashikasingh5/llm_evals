@@ -9,6 +9,10 @@ class ScoreResult:
     passed: bool
     score: float
     reason: str = ""
+    # True when the grader itself failed, rather than the system under test.
+    # A judge whose reply got truncated tells you nothing about the output it
+    # was grading, so counting it as a failing answer is simply wrong.
+    grader_failed: bool = False
 
 
 def exact_match(output: str, expected: Any, input: Any = None) -> ScoreResult:
@@ -86,7 +90,46 @@ wrong answers. Respond with ONLY a JSON object, no other text:
 """
 
 
-def make_llm_judge(call_fn: Callable[[str], str], pass_threshold: int = 7) -> Callable:
+def _extract_json_object(text: str) -> dict | None:
+    """
+    Pull a JSON object out of a judge's reply.
+
+    Judges wrap their answer in prose or code fences, and a reply that hits the
+    token limit gets cut off mid-string. Scanning for the first balanced {...}
+    recovers the common cases; a truncated reply has no closing brace and
+    correctly returns None instead of a wrong score.
+    """
+    text = _strip_markdown_fence(text)
+    start = text.find("{")
+    if start == -1:
+        return None
+    depth, in_string, escaped = 0, False, False
+    for i, ch in enumerate(text[start:], start):
+        if in_string:
+            if escaped:
+                escaped = False
+            elif ch == "\\":
+                escaped = True
+            elif ch == '"':
+                in_string = False
+            continue
+        if ch == '"':
+            in_string = True
+        elif ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                try:
+                    return json.loads(text[start : i + 1])
+                except json.JSONDecodeError:
+                    return None
+    return None
+
+
+def make_llm_judge(
+    call_fn: Callable[[str], str], pass_threshold: int = 7, retries: int = 1
+) -> Callable:
     """
     Returns a scorer that uses an LLM to grade open-ended output.
 
@@ -94,18 +137,40 @@ def make_llm_judge(call_fn: Callable[[str], str], pass_threshold: int = 7) -> Ca
     Deliberately provider-agnostic — pass in a small wrapper around
     Groq, Anthropic, OpenAI, whatever you're using. See
     examples/llm_clients.py for ready-made wrappers.
+
+    An unreadable reply is reported as `grader_failed`, NOT as a failing answer.
+    Those are different events and conflating them makes your system look worse
+    than it is: a judge whose reply was cut off never rendered a verdict at all.
     """
 
     def _score(output: str, expected: Any, input: Any = None) -> ScoreResult:
         prompt = LLM_JUDGE_PROMPT.format(input=input, output=output, expected=expected)
-        text = call_fn(prompt).strip()
-        try:
-            parsed = json.loads(text)
-            score = int(parsed["score"])
-            reason = parsed.get("reason", "")
-        except (json.JSONDecodeError, KeyError, ValueError):
-            return ScoreResult(passed=False, score=0.0, reason=f"unparseable judge output: {text}")
-        return ScoreResult(passed=score >= pass_threshold, score=score / 10.0, reason=reason)
+        last_text = ""
+        for attempt in range(retries + 1):
+            try:
+                last_text = call_fn(prompt).strip()
+            except Exception as e:
+                last_text = f"{type(e).__name__}: {e}"
+                continue
+            parsed = _extract_json_object(last_text)
+            if parsed is None or "score" not in parsed:
+                continue
+            try:
+                score = int(parsed["score"])
+            except (TypeError, ValueError):
+                continue
+            score = max(0, min(10, score))
+            return ScoreResult(
+                passed=score >= pass_threshold,
+                score=score / 10.0,
+                reason=parsed.get("reason", ""),
+            )
+        return ScoreResult(
+            passed=False,
+            score=0.0,
+            reason=f"judge did not return a usable score after {retries + 1} attempt(s): {last_text[:200]}",
+            grader_failed=True,
+        )
 
     return _score
 

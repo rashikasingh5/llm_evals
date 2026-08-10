@@ -1,11 +1,11 @@
 {
   "meta": {
     "schema_version": 1,
-    "timestamp": "2026-08-10T05:33:01+00:00",
+    "timestamp": "2026-08-10T05:56:41+00:00",
     "dataset_path": "examples/golden_set_offline.jsonl",
     "dataset_sha256": "84d0ee98e7c1",
     "n_examples": 4,
-    "scorers_sha256": "500780c89a43",
+    "scorers_sha256": "c598e3e07fa4",
     "default_scorer": "exact_match",
     "pipeline_spec": "examples.mock_pipeline:answer",
     "pipeline": {
@@ -13,17 +13,20 @@
       "model": "canned-v1"
     },
     "model": "canned-v1",
-    "note": "initial CI baseline",
-    "harness_git_sha": "dfc4285",
-    "harness_git_dirty": false
+    "note": "rebaseline: llm_judge now reports grader failures separately",
+    "harness_git_sha": "90ab7b3",
+    "harness_git_dirty": true
   },
   "summary": {
     "total": 4,
+    "gradable": 4,
     "passed": 4,
     "pass_rate": 1.0,
     "avg_score": 1.0,
-    "avg_latency_s": 7.748603820800781e-07,
+    "avg_latency_s": 4.76837158203125e-07,
     "error_count": 0,
+    "grader_failure_count": 0,
+    "grader_failure_ids": [],
     "by_tag": {
       "geography": {
         "total": 2,
@@ -66,7 +69,8 @@
       "score": 1.0,
       "reason": "",
       "latency_s": 9.5367431640625e-07,
-      "error": null
+      "error": null,
+      "grader_failed": false
     },
     {
       "id": "capital_australia",
@@ -81,7 +85,8 @@
       "score": 1.0,
       "reason": "",
       "latency_s": 9.5367431640625e-07,
-      "error": null
+      "error": null,
+      "grader_failed": false
     },
     {
       "id": "math_simple",
@@ -95,7 +100,8 @@
       "score": 1.0,
       "reason": "diff=0.0",
       "latency_s": 0.0,
-      "error": null
+      "error": null,
+      "grader_failed": false
     },
     {
       "id": "extract_json",
@@ -111,8 +117,9 @@
       "passed": true,
       "score": 1.0,
       "reason": "",
-      "latency_s": 1.1920928955078125e-06,
-      "error": null
+      "latency_s": 0.0,
+      "error": null,
+      "grader_failed": false
     }
   ]
 }

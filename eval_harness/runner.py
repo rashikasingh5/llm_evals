@@ -18,6 +18,9 @@ class ExampleResult:
     reason: str
     latency_s: float
     error: str | None = None
+    # The grader broke, so this example was never actually graded. Distinct
+    # from passed=False, which means the grader ran and said no.
+    grader_failed: bool = False
 
 
 def run_eval(
@@ -53,7 +56,7 @@ def run_eval(
             result = ExampleResult(
                 id=ex.id, input=ex.input, output=output, expected=ex.expected, tags=ex.tags,
                 passed=score_result.passed, score=score_result.score, reason=score_result.reason,
-                latency_s=latency, error=None,
+                latency_s=latency, error=None, grader_failed=score_result.grader_failed,
             )
         results.append(result)
     return results

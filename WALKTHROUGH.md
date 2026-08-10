@@ -1,101 +1,71 @@
-# Understanding your own repo
+# Understanding this repo
 
-You don't need to understand 773 lines. You need to understand about 60. The
-rest is bookkeeping around those 60.
+There are about 770 lines here, but the idea is only six. The rest is
+bookkeeping.
 
-Work through this with a terminal open. Every exercise is one command. Try to
-**predict the output before you run it** — that's where the learning actually
-happens.
+Work through this with a terminal open. Each exercise is one command. Try to
+guess the output before you run it.
 
----
-
-## Part 1: The entire idea, in 6 lines
-
-Strip away every file in this repo and here is what's left:
+## The idea
 
 ```python
-for example in dataset:                          # a list of questions
-    output = my_pipeline(example.input)          # ask the AI
-    result = scorer(output, example.expected)    # is the answer OK?
-    results.append(result)                       # write it down
+for example in dataset:
+    output = my_pipeline(example.input)
+    result = scorer(output, example.expected)
+    results.append(result)
 ```
 
-That's an eval. A list of questions, a thing that answers them, a thing that
-grades the answers, and a record of what happened.
+A list of questions, something that answers them, something that grades the
+answers, and a record of what happened. That's an eval.
 
-Everything else in this repo exists to answer one of four follow-up questions:
+Each file answers one question about that loop:
 
-| question | file that answers it |
-|---|---|
-| where do the questions come from? | `dataset.py` |
-| how do we grade an answer? | `scorers.py` |
-| how do we run the loop and time it? | `runner.py` |
-| how do we add up and compare results? | `report.py` |
-| what produced this run? | `provenance.py` |
-| how do I type all this on a command line? | `cli.py` |
+* `dataset.py` — where do the questions come from?
+* `scorers.py` — how do we grade an answer?
+* `runner.py` — how do we run the loop and time it?
+* `report.py` — how do we add up and compare results?
+* `provenance.py` — what produced this run?
+* `cli.py` — how do I type all this on a command line?
 
-Six files. Each answers exactly one question. If you ever feel lost, come back
-to this table and ask "which of these six am I looking at?"
+If you get lost, ask which of the six you're looking at.
 
----
+## Following one question through
 
-## Part 2: Follow one question through the machine
-
-Take the very first line of `examples/golden_set.jsonl`:
+Here's the first line of `examples/golden_set.jsonl`:
 
 ```json
 {"id": "capital_france", "input": "What is the capital of France?",
  "expected": "Paris", "tags": ["geography", "easy"], "scorer": "contains"}
 ```
 
-Read that as a sentence: *"When asked the capital of France, the answer should
-contain the word Paris. This is an easy geography question."*
+In words: when asked the capital of France, the answer should contain "Paris".
+It's an easy geography question.
 
-Here's its journey:
+`dataset.py` reads that line and turns it into an `Example` object. It also
+checks for broken JSON, a missing `input`, and duplicate ids, so a typo in your
+dataset fails immediately instead of turning into a mysterious wrong number
+later.
 
-**Step 1 — `dataset.py` reads it.**
-It turns that line of text into a Python object called an `Example`, with five
-fields: `id`, `input`, `expected`, `tags`, `scorer`. It also checks for mistakes
-you'd otherwise discover much later — broken JSON, a missing `input`, two
-examples sharing an `id`.
+`runner.py` sees `"scorer": "contains"` and looks up the `contains` function. It
+starts a timer, calls your pipeline with the question, and stops the timer. The
+model replies `"The capital of France is **Paris**."`
 
-**Step 2 — `runner.py` runs it.**
-It looks at `"scorer": "contains"` and fetches the `contains` function. It
-starts a stopwatch, calls `my_pipeline("What is the capital of France?")`, stops
-the stopwatch.
-
-The model replies: `"The capital of France is **Paris**."`
-
-**Step 3 — `scorers.py` grades it.**
-The `contains` scorer does exactly what it sounds like:
-
-```python
-ok = "paris" in "the capital of france is **paris**."   # True
-```
-
-Lowercased on both sides, so capitalization doesn't matter. Returns
+`scorers.py` grades it. The `contains` scorer lowercases both strings and checks
+whether one appears in the other, so capitalisation doesn't matter. It returns
 `passed=True, score=1.0`.
 
-**Step 4 — `runner.py` writes it down.**
-It bundles everything into one `ExampleResult`: the id, the input, what the
-model said, what was expected, pass/fail, the score, how long it took.
+`runner.py` bundles all of that into one record: the id, the question, what the
+model said, what was expected, pass or fail, the score, and how long it took.
 
-**Step 5 — `report.py` adds it up.**
-Counts passes across all examples, computes the pass rate, and also breaks it
-down by tag — so you can see "geography: 2/2, math: 0/1" instead of just one
-number hiding everything.
+`report.py` counts up the passes and works out the pass rate, both overall and
+per tag. Per tag matters because one number hides everything: "geography 2/2,
+math 0/1" tells you where to look.
 
-**Step 6 — `provenance.py` stamps it.**
-Records *what produced this run*: which dataset, which scorers, which model.
-This is the newest piece and the one Part 5 is about.
+`provenance.py` stamps the run with what produced it. More on that below.
 
-That's the whole system. Every other line is a variation on those six steps.
+## Exercises
 
----
-
-## Part 3: The exercises
-
-### Exercise 1 — Watch the loop run
+### 1. Watch it run
 
 ```bash
 python3 -m eval_harness.cli run \
@@ -104,35 +74,29 @@ python3 -m eval_harness.cli run \
     --output results/exercise1.json
 ```
 
-No API key, no cost. `mock_pipeline` is a fake AI that returns memorized
-answers — useful precisely because it never surprises you.
+`mock_pipeline` is a fake AI that returns memorised answers, so this costs
+nothing and needs no API key.
 
-Now open `results/exercise1.json` in your editor. It has three sections:
-`meta` (what produced this), `summary` (the totals), `results` (one entry per
-question). **Find the entry for `capital_france` and match each field to a step
-in Part 2.**
+Open `results/exercise1.json`. It has three sections: `meta` (what produced
+this), `summary` (the totals), and `results` (one entry per question). Find
+`capital_france` and match its fields to the steps above.
 
-### Exercise 2 — Break a question on purpose
+### 2. Break a question on purpose
 
-Open `examples/golden_set_offline.jsonl` and change the France line's
-`"expected"` from `"Paris"` to `"Lyon"`. Re-run Exercise 1's command with
+In `examples/golden_set_offline.jsonl`, change the France line's `expected`
+from `Paris` to `Lyon`. Run the same command again with
 `--output results/exercise2.json`.
 
-**Predict first:** what pass rate do you expect?
+You'll get 3/4, and that example will show `"passed": false`. Nothing crashed.
+The eval just reported that the AI's answer disagreed with what you wrote down.
 
-You should get 3/4. Now look at that example in the JSON: `"passed": false`.
-Nothing broke, nothing crashed — the eval simply reported a disagreement
-between what the AI said and what you claimed was correct.
+Which is the lesson: an eval has no idea what's true. It only knows what you
+claimed was correct. Your golden answers are an opinion, and if the opinion is
+wrong the eval will confidently report the wrong thing.
 
-**The point:** an eval doesn't know truth. It only knows whether the output
-matches *what you wrote down*. Your golden answers are an opinion, and if the
-opinion is wrong, the eval confidently reports the wrong thing.
+Change it back to `Paris` before moving on.
 
-Change `Lyon` back to `Paris` before continuing.
-
-### Exercise 3 — Find the hole in a scorer
-
-Run this:
+### 3. Find a hole in a scorer
 
 ```bash
 python3 -c "
@@ -141,33 +105,28 @@ print(contains('The capital of France is definitely not Paris.', 'Paris'))
 "
 ```
 
-It passes. Score 1.0.
+It passes, with a score of 1.0. The model said the opposite of the right answer
+and the eval called it correct, because `contains` is just looking for the
+letters p-a-r-i-s. It has no idea what "not" means.
 
-Sit with that for a second. The model said the *opposite* of the right answer
-and your eval called it correct. `contains` just looks for the letters
-p-a-r-i-s anywhere in the text; it has no idea what "not" means.
+Scorers are code, and code has bugs. A scorer that's too generous gives you a
+green dashboard and a broken product.
 
-**The point:** scorers are code, and code has bugs. A scorer that's too
-generous gives you a green dashboard and a broken product. This is Module 3 in
-the learning path, and it's the most underrated idea in evals.
-
-### Exercise 4 — Watch the same output get graded two different ways
+### 4. Same problem, different angle
 
 ```bash
 python3 -c "
 from eval_harness.scorers import json_schema_valid
-out = '{\"name\": \"\", \"age\": \"\"}'
-print(json_schema_valid(out, {'name': '', 'age': ''}))
+print(json_schema_valid('{\"name\": \"\", \"age\": \"\"}', {'name': '', 'age': ''}))
 "
 ```
 
-Passes. Valid JSON, correct keys — and it extracted absolutely nothing. Same
-lesson as Exercise 3 from a different angle: the scorer checks the *shape* of
-the answer, not whether the answer is any good.
+Passes. Valid JSON with the right keys, and it extracted nothing at all. The
+scorer checks the shape of the answer, not whether the answer is any good.
 
-### Exercise 5 — The mistake this repo was built to catch
+### 5. The mistake this repo was built to catch
 
-Run the offline eval twice with no changes:
+Run the offline eval twice, changing nothing:
 
 ```bash
 python3 -m eval_harness.cli run --dataset examples/golden_set_offline.jsonl \
@@ -179,123 +138,84 @@ python3 -m eval_harness.cli run --dataset examples/golden_set_offline.jsonl \
 python3 -m eval_harness.cli compare results/a.json results/b.json
 ```
 
-It says **"nothing changed"** — same model, same dataset, same scorers. Good.
+It reports that nothing changed: same model, same dataset, same scorers.
 
-Now compare your two original runs, from before any of this existed:
+Now compare the two runs from before any of this existed:
 
 ```bash
 python3 -m eval_harness.cli compare results/run1.json results/run2.json
 ```
 
-It says the pass rate went up 40 points, and warns that **neither run recorded
-any provenance**, so the improvement is unattributable.
+The pass rate went up 40 points, and it warns that neither run recorded any
+provenance, so there's no way to say why.
 
-That warning is correct, and it's the whole reason Module 1 exists. Those two
-runs have byte-for-byte identical model outputs. The pass rate rose because the
-*scorers* were fixed between them — the AI never improved at all.
+The warning is right. Those two runs have identical model outputs. The pass rate
+rose because the scorers were fixed in between. The AI never improved.
 
----
+## What's in each file
 
-## Part 4: What each file actually contains
+They're short. Read them in this order.
 
-Read them in this order. They're short.
+`dataset.py` (46 lines) reads a `.jsonl` file, one JSON object per line, into a
+list of `Example` objects.
 
-**`dataset.py` (46 lines)** — reads a `.jsonl` file (one JSON object per line)
-into a list of `Example` objects, and refuses to continue if the file is
-malformed or has duplicate ids. Fail loudly and early; a typo in your dataset
-should not become a mysterious wrong number three steps later.
+`scorers.py` (118 lines) holds five graders. Each takes `(output, expected)` and
+returns `ScoreResult(passed, score, reason)`. Because they all share that shape,
+the runner can use any of them without knowing which. `SCORER_REGISTRY` at the
+bottom maps the name you write in your dataset to the function.
 
-**`scorers.py` (118 lines)** — five graders. Each one is a function taking
-`(output, expected)` and returning `ScoreResult(passed, score, reason)`.
-Because they all share that shape, the runner can use any of them without
-knowing which. `SCORER_REGISTRY` at the bottom is just a dictionary mapping the
-name you write in your dataset to the actual function.
+The odd one out is `llm_judge`. For open-ended questions where no string
+comparison works, it asks another AI to grade the answer. That works, but a
+judge has its own biases and needs checking against your own judgement before
+you trust it.
 
-The interesting one is `llm_judge`: for open-ended questions where no string
-comparison works, it asks *another AI* to grade the answer. Powerful and
-genuinely unreliable — that's Module 4.
+`runner.py` (62 lines) is the loop, plus a timer and a `try/except` so one
+crashing example doesn't kill the whole run.
 
-**`runner.py` (62 lines)** — the loop from Part 1, plus two things: a stopwatch,
-and a `try/except` so that one crashing example doesn't kill the whole run (it's
-recorded as a failure with the error message).
+`report.py` (152 lines) does arithmetic and printing. `summarize` counts passes.
+`diff_runs` compares two saved runs and finds the examples that flipped:
+pass to fail is a regression, fail to pass is a fix.
 
-**`report.py` (152 lines)** — arithmetic and printing. `summarize` counts passes
-overall and per tag. `diff_runs` compares two saved runs and finds examples that
-flipped: pass→fail is a **regression**, fail→pass is a **fix**. The rest formats
-it for the terminal.
+`provenance.py` (148 lines) records a fingerprint of the dataset, the scorers,
+the model and the git commit, then checks whether two runs are comparable.
 
-**`provenance.py` (148 lines)** — the newest piece. Records a fingerprint of the
-dataset, the scorers, the model, and the git commit, then checks whether two
-runs are actually comparable.
+`cli.py` (127 lines) turns command-line words into function calls. Most of it is
+`argparse` boilerplate. The real logic is `cmd_run` and `cmd_compare`, about 15
+lines each.
 
-**`cli.py` (127 lines)** — turns command-line words into function calls. Almost
-all of it is `argparse` boilerplate; the real logic is two functions,
-`cmd_run` and `cmd_compare`, each about 15 lines.
+## Provenance
 
----
+An eval score compares two things: what your AI said, and what your grader
+accepts. When the score changes, either side could be responsible.
 
-## Part 5: Provenance, explained properly
+Say a student's exam score goes from 60% to 100%. Did they study, or did the
+teacher hand out an easier exam? If nobody recorded which exam was used, you
+can't tell. That's what happened between `run1.json` and `run2.json`.
 
-This is the part that probably felt like it came out of nowhere.
+So each run now records four things that could have moved: a hash of the
+dataset file, a hash of `scorers.py`, the model name, and the git commit.
 
-**The problem.** An eval score is a comparison between two things: what your AI
-said, and what your grader accepts. When the score changes, either side could
-have moved.
+A hash is a short code computed from a file's contents, like `84d0ee98e7c1`.
+Change one character in the file and the code changes completely. It's a cheap
+way to ask "is this the same file as before?"
 
-Think of a student's exam score going from 60% to 100%. Did the student study,
-or did the teacher hand out an easier exam? If nobody wrote down which exam was
-used, that question can never be answered.
+`compare` then counts how many of those four moved. If none did, any difference
+in the score is noise. If one did, that's your explanation. If two or more did,
+the comparison can't tell you anything, and `--require-controlled` will exit
+with an error rather than let you read meaning into it.
 
-That is literally what happened in your `run1.json` → `run2.json`. Same
-answers, easier grading, and no record of it.
+It's the same discipline as any experiment: change one thing at a time.
 
-**The fix.** Every run now writes down four things that could have changed:
+## Skip these for now
 
-| what | how it's stored |
-|---|---|
-| the dataset | a hash of the file |
-| the graders | a hash of `scorers.py` |
-| the model | the name, e.g. `openai/gpt-oss-120b` |
-| the harness code | the git commit |
+`llm_clients.py`, the `argparse` block at the bottom of `cli.py`, `_git_info()`
+in `provenance.py`, and `.github/workflows/eval.yml`. All plumbing.
 
-A **hash** is a short code computed from a file's contents, like
-`84d0ee98e7c1`. Change one character in the file and the code changes
-completely. It's a fingerprint for files — a cheap way to ask "is this the
-exact same file as before?" without storing the whole thing.
+## Check yourself
 
-**The rule.** `compare` checks how many of those four moved:
-
-- **zero** → any difference is random noise, not a result
-- **one** → that one thing is your explanation. This is the only useful case.
-- **two or more** → uncontrolled; the number can't be attributed to anything
-
-This is just the scientific method: change one variable at a time. Obvious in a
-chemistry lab, and almost nobody does it when tweaking prompts.
-
----
-
-## What to ignore for now
-
-Genuinely skip these until you need them. They're plumbing:
-
-- `llm_clients.py` — boilerplate for talking to Groq/Anthropic
-- the `argparse` block at the bottom of `cli.py`
-- `_git_info()` in `provenance.py`
-- `.github/workflows/eval.yml` — CI. Useful, but it's GitHub configuration,
-  not eval knowledge.
-
----
-
-## How to know you've understood it
-
-You've got it when you can answer these without looking:
-
-1. What are the three inputs to an eval? *(dataset, pipeline, scorer)*
-2. Why does a scorer return a `reason` and not just true/false?
-3. Why does `mock_pipeline` exist when you have a real API key?
-4. Why is a rising pass rate not automatically good news?
-5. If you change your prompt **and** add 5 new examples, then compare — why is
-   the result meaningless?
-
-If #5 makes immediate sense, you understand this repo better than most people
-shipping AI features, and you're ready for Module 2.
+1. What are the three inputs to an eval?
+2. Why does a scorer return a `reason` and not just true or false?
+3. Why keep `mock_pipeline` around when you have a real API key?
+4. Why isn't a rising pass rate automatically good news?
+5. If you change your prompt and add five new examples, then compare the runs,
+   why can't you learn anything from the result?

@@ -2,30 +2,23 @@
 
 ![eval](https://github.com/rashika510/eval_harness_base/actions/workflows/eval.yml/badge.svg)
 
-A minimal, real eval harness for LLM pipelines: golden datasets, pluggable
-scorers (including LLM-as-judge), run-to-run regression diffing, and
-**provenance tracking so a change in pass rate is actually attributable.**
+A small eval harness for LLM pipelines. Golden datasets, pluggable scorers
+including LLM-as-judge, run-to-run regression diffing, and provenance tracking
+so you can tell what caused a change in the score.
 
-This is the skeleton — it works out of the box on a toy example, and every
-piece is meant to be extended. See [LEARNING_PATH.md](LEARNING_PATH.md) for the
-roadmap from here to a real eval + guardrails suite.
+New here? Start with [WALKTHROUGH.md](WALKTHROUGH.md).
 
-## The problem this exists to solve
+## Why provenance
 
-An eval score measures two things at once: your system, and your grader. Here
-are two real runs from this repo, `results/run1.json` and `results/run2.json`:
+An eval score measures two things at once: your system, and your grader. Two
+real runs in this repo, `results/run1.json` and `results/run2.json`, show why
+that matters. Two examples went from fail to pass while the model output stayed
+byte-for-byte identical. The pass rate went from 60% to 100% because the
+scorers were fixed in between, not because anything improved.
 
-| example | run1 | run2 | model output |
-|---|---|---|---|
-| `math_simple` | fail | pass | **byte-for-byte identical** |
-| `extract_json` | fail | pass | **byte-for-byte identical** |
-
-Pass rate went 60% → 100% and the model never changed. The *scorers* were fixed
-between runs. Neither file records which scorers ran, so nothing in the data
-says so — you have to already know.
-
-That's what `provenance.py` fixes. Every run now fingerprints the four things
-that could have moved, and `compare` tells you which one did.
+Neither file records which scorers ran, so nothing in the data tells you that.
+You have to already know. `provenance.py` fixes it: every run now fingerprints
+the things that could have moved, and `compare` tells you which one did.
 
 ## Quickstart (no API key needed)
 
@@ -38,13 +31,14 @@ python -m eval_harness.cli run \
 python -m eval_harness.cli compare results/baseline_offline.json results/mine.json
 ```
 
-`mock_pipeline` returns canned answers, so this is free, offline, and
-deterministic — the right fixture for working on the harness itself.
+`mock_pipeline` returns canned answers, so this is free, offline, and gives the
+same result every time. That makes it the right thing to test the harness
+against.
 
 ## Quickstart (real model)
 
-Uses Groq by default (OpenAI-compatible API, free tier available). Put your key
-in a `.env` file (already gitignored) — the CLI loads it automatically:
+Uses Groq by default, which has a free tier and an OpenAI-compatible API. Put
+your key in a `.env` file. It's gitignored, and the CLI loads it for you.
 
 ```bash
 pip install -r requirements.txt --break-system-packages
@@ -86,13 +80,10 @@ Baseline pass rate: 75.0%
 New pass rate:      100.0%  (+25.0%)
 ```
 
-Three outcomes worth knowing:
-
-- **nothing changed** — any delta is run-to-run noise, not a result.
-- **exactly one thing changed** — this is the only case where the delta means
-  something. That one variable is your explanation.
-- **two or more changed** — uncontrolled. The number is not interpretable, and
-  `compare --require-controlled` will exit 1 rather than let you believe it.
+There are three cases. If nothing changed, a difference in the score is just
+noise. If exactly one thing changed, that's your explanation. If two or more
+changed, the number can't tell you anything, and `compare --require-controlled`
+exits with an error instead of letting you read meaning into it.
 
 ## How the pieces fit
 
@@ -105,10 +96,10 @@ report.py      -> aggregates a run, and diffs two runs example-by-example
 cli.py         -> `run` and `compare` commands
 ```
 
-The only thing you need to write to eval YOUR system: a function shaped
-like `(input) -> output_str`. See `examples/sample_pipeline.py`.
-Provider wrappers (Groq, Anthropic) live in `examples/llm_clients.py` —
-swap providers there without touching harness code.
+To eval your own system, the only thing you have to write is a function shaped
+like `(input) -> output_str`. See `examples/sample_pipeline.py`. Provider
+wrappers for Groq and Anthropic live in `examples/llm_clients.py`, so you can
+switch providers without touching the harness.
 
 ## CI
 
@@ -116,8 +107,8 @@ swap providers there without touching harness code.
 compares it to `results/baseline_offline.json` with `--require-controlled
 --fail-on-regression`. No API key or secret required.
 
-When you *intentionally* change a scorer or the dataset, CI will fail — that's
-the point. Regenerate the baseline in the same commit:
+If you change a scorer or the dataset on purpose, CI will fail. That's intended.
+Regenerate the baseline in the same commit:
 
 ```bash
 python -m eval_harness.cli run \
@@ -126,19 +117,19 @@ python -m eval_harness.cli run \
     --output results/baseline_offline.json --note "rebaseline: <why>"
 ```
 
-The `--note` is the audit trail. "rebaseline" commits are exactly where graders
-get quietly loosened, so they're worth reviewing carefully.
+The `--note` is your audit trail. Rebaseline commits are where graders quietly
+get loosened, so they're worth a careful read.
 
 ## Where to take this next
 
-The full roadmap — 10 modules covering variance, scorer validity, LLM-judge
-calibration, cost, guardrails, and drift — lives in
-[LEARNING_PATH.md](LEARNING_PATH.md).
-
-Done so far: Module 0 (the scorer-fix illusion, documented above) and
-Module 1 (provenance). Next up is Module 2: running each example N times,
-because a pass rate from a single run of 5 examples has an error bar wide
-enough to hide any change you care about.
-
-The one that actually matters is pointing this at a system you genuinely care
-about getting right. Five trivia questions is a fixture, not an eval.
+1. Use a real dataset. Five trivia questions is a fixture, not an eval. Point
+   this at a system you care about getting right and write 20-30 examples by
+   hand, including the awkward edge cases. Nothing else here matters as much.
+2. Run each example several times. LLMs give different answers to the same
+   question, and one run of five examples can't tell you much.
+3. Test your scorers. `contains("...not Paris", "Paris")` currently passes.
+4. Check that your LLM judge agrees with you. Hand-grade 20 outputs yourself and
+   see how often it matches. If it doesn't, the judge isn't doing anything.
+5. Add safety examples: prompt injection, PII, and cases the system should
+   refuse. Include cases it should not refuse too, or a model that refuses
+   everything will score perfectly.
